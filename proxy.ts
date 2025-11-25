@@ -7,7 +7,7 @@ const secret = new TextEncoder().encode(secretKey);
 
 const publicPaths = ['/login', '/api/auth/login', '/api/auth/setup', '/api/auth/status'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public paths
