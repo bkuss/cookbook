@@ -4,7 +4,6 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '@/components/layout/header';
-import { BottomNav } from '@/components/layout/bottom-nav';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -31,7 +30,9 @@ export default function RecipeDetailPage({ params }: PageProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
+  const [checkedSteps, setCheckedSteps] = useState<Set<string>>(new Set());
   const [displayServings, setDisplayServings] = useState<number | null>(null);
+  const [savingServings, setSavingServings] = useState(false);
 
   useEffect(() => {
     async function fetchRecipe() {
@@ -107,9 +108,48 @@ export default function RecipeDetailPage({ params }: PageProps) {
     setDisplayServings(newValue);
   }
 
+  async function saveAdjustedServings() {
+    if (!recipe || !displayServings || displayServings === recipe.servings) return;
+
+    setSavingServings(true);
+    try {
+      const adjustedIngredients = recipe.ingredients.map(ing => ({
+        name: ing.name,
+        amount: ing.amount !== null ? ing.amount * servingsMultiplier : null,
+        unit: ing.unit,
+      }));
+
+      const res = await fetch(`/api/recipes/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: recipe.title,
+          instructions: recipe.instructions,
+          servings: displayServings,
+          sourceUrl: recipe.sourceUrl,
+          imageData: recipe.imageData,
+          ingredients: adjustedIngredients,
+        }),
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setRecipe(updated);
+        setDisplayServings(null);
+        toast.success('Rezept gespeichert');
+      } else {
+        toast.error('Fehler beim Speichern');
+      }
+    } catch {
+      toast.error('Verbindungsfehler');
+    } finally {
+      setSavingServings(false);
+    }
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background">
         <Header title="Laden..." showBack />
         <div className="p-4 space-y-4">
           <Skeleton className="aspect-video w-full" />
@@ -121,7 +161,6 @@ export default function RecipeDetailPage({ params }: PageProps) {
             ))}
           </div>
         </div>
-        <BottomNav />
       </div>
     );
   }
@@ -131,7 +170,7 @@ export default function RecipeDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background">
       <Header
         title={recipe.title}
         showBack
@@ -223,13 +262,23 @@ export default function RecipeDetailPage({ params }: PageProps) {
                 </button>
               </div>
               {displayServings && displayServings !== recipe.servings && (
-                <button
-                  type="button"
-                  onClick={() => setDisplayServings(null)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  (Original: {recipe.servings})
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setDisplayServings(null)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    (Original: {recipe.servings})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveAdjustedServings}
+                    disabled={savingServings}
+                    className="ml-auto text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  >
+                    {savingServings ? 'Speichern...' : 'Speichern'}
+                  </button>
+                </>
               )}
             </div>
             {recipe.sourceUrl && (
@@ -293,13 +342,36 @@ export default function RecipeDetailPage({ params }: PageProps) {
 
           <section>
             <h2 className="text-xl font-bold mb-3">Zubereitung</h2>
-            <div className="prose prose-sm max-w-none dark:prose-invert">
+            <div className="prose max-w-none dark:prose-invert prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground">
               <ReactMarkdown
                 components={{
                   h1: ({ node, ...props }) => <h1 className="text-lg font-bold mt-4 mb-2" {...props} />,
                   h2: ({ node, ...props }) => <h2 className="text-base font-semibold mt-4 mb-3" {...props} />,
                   h3: ({ node, ...props }) => <h3 className="text-base font-semibold mt-3 mb-1" {...props} />,
                   h4: ({ node, ...props }) => <h4 className="text-base font-medium mt-2 mb-1" {...props} />,
+                  li: ({ node, children, ...props }) => {
+                    const key = String(children).slice(0, 50);
+                    const isChecked = checkedSteps.has(key);
+                    return (
+                      <li
+                        className={`cursor-pointer transition-colors hover:bg-muted/50 rounded px-1 -mx-1 ${isChecked ? 'opacity-50 line-through' : ''}`}
+                        onClick={() => {
+                          setCheckedSteps(prev => {
+                            const next = new Set(prev);
+                            if (next.has(key)) {
+                              next.delete(key);
+                            } else {
+                              next.add(key);
+                            }
+                            return next;
+                          });
+                        }}
+                        {...props}
+                      >
+                        {children}
+                      </li>
+                    );
+                  },
                 }}
               >
                 {recipe.instructions}
@@ -308,8 +380,6 @@ export default function RecipeDetailPage({ params }: PageProps) {
           </section>
         </div>
       </main>
-
-      <BottomNav />
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>

@@ -69,12 +69,15 @@ const navItems = [
   },
 ];
 
-export function BottomNav() {
+export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t safe-area-bottom md:hidden">
-      <div className="flex items-center h-16 w-full max-w-screen-xl mx-auto">
+    <div className="hidden md:flex h-screen w-64 flex-col fixed left-0 top-0 border-r bg-background z-50">
+      <div className="p-6 border-b h-14 flex items-center">
+        <h1 className="text-lg font-semibold tracking-tight">Familienrezepte</h1>
+      </div>
+      <nav className="flex-1 p-4 space-y-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href ||
             (item.href !== '/' && pathname.startsWith(item.href));
@@ -84,30 +87,25 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'relative flex flex-1 flex-col items-center justify-center gap-1 py-2 rounded-md transition-colors h-full',
+                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors relative',
                 isActive
                   ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               {isActive && (
                 <motion.div
-                  layoutId="nav-pill"
-                  className="absolute inset-x-2 inset-y-1 bg-primary/10 rounded-lg -z-10"
+                  layoutId="sidebar-pill"
+                  className="absolute inset-0 bg-primary/10 rounded-md -z-10"
                   transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                 />
               )}
-              <motion.div
-                animate={{ scale: isActive ? 1.1 : 1 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              >
-                {item.icon}
-              </motion.div>
-              <span className="text-xs font-medium">{item.label}</span>
+              {item.icon}
+              <span>{item.label}</span>
             </Link>
           );
         })}
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }

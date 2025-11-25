@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
-import { BottomNav } from '@/components/layout/bottom-nav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -192,7 +191,7 @@ export default function ImportPage() {
   // Show recipe form if we have extracted data
   if (extractedRecipe) {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background">
         <Header
           title="Rezept überprüfen"
           showBack
@@ -223,13 +222,12 @@ export default function ImportPage() {
             onSubmit={handleRecipeCreated}
           />
         </main>
-        <BottomNav />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background">
       <Header title="Rezept importieren" showBack />
 
       <main className="p-4">
@@ -344,8 +342,6 @@ export default function ImportPage() {
           </TabsContent>
         </Tabs>
       </main>
-
-      <BottomNav />
     </div>
   );
 }

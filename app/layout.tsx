@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { Shell } from "@/components/layout/shell";
 import "./globals.css";
 
 const geist = Geist({
@@ -35,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body className={`${geist.variable} font-sans antialiased`}>
-        {children}
+        <Shell>{children}</Shell>
         <Toaster position="top-center" />
       </body>
     </html>

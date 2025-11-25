@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layout/header';
-import { BottomNav } from '@/components/layout/bottom-nav';
 import { SearchBar } from '@/components/layout/search-bar';
 import { RecipeCard } from '@/components/recipes/recipe-card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -48,7 +47,7 @@ export default function HomePage() {
   }, [searchQuery, fetchRecipes]);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background">
       <Header
         title="Familienrezepte"
         actions={
@@ -136,8 +135,6 @@ export default function HomePage() {
           </div>
         )}
       </main>
-
-      <BottomNav />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { BottomNav } from '@/components/layout/bottom-nav';
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -118,7 +117,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background">
       <Header title="Einstellungen" />
 
       <main className="p-4 space-y-4">
@@ -232,8 +231,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </main>
-
-      <BottomNav />
     </div>
   );
 }
