@@ -1,0 +1,43 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+npm run dev      # Start development server
+npm run build    # Production build
+npm run lint     # Run ESLint
+```
+
+## Architecture
+
+**Familienrezepte** - A mobile-first German recipe management app built with Next.js 16 App Router.
+
+### Tech Stack
+- Next.js 16 with App Router
+- Tailwind CSS + shadcn/ui components
+- PostgreSQL with raw SQL (no ORM) via `pg` library
+- JWT sessions with `jose` library
+- Replicate API for AI features
+
+### Key Patterns
+
+**Database**: All tables prefixed with `recipes_` (recipes_app_settings, recipes_recipes, recipes_ingredients). Raw SQL queries in `lib/db/queries/`. Migration in `lib/db/migrations/001_initial.sql`.
+
+**Authentication**: Simple shared PIN authentication. PIN hashed with scrypt (`lib/auth/pin.ts`). JWT sessions stored in cookies (`lib/auth/session.ts`). Middleware protects all routes except `/login`.
+
+**AI Features** (`lib/replicate/client.ts`):
+- Recipe extraction from images/URLs using `openai/gpt-5` model
+- Image generation using `google/nano-banana` model (16:9 aspect ratio)
+
+**Recipe Data Flow**:
+- Images stored as base64 in PostgreSQL
+- Instructions stored as markdown numbered lists (auto-formatted on save)
+- Ingredients have optional amount/unit fields
+
+### Environment Variables
+```
+REPLICATE_API_TOKEN=
+DATABASE_URI=
+```
