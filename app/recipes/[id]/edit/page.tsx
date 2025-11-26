@@ -57,7 +57,7 @@ export default function EditRecipePage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="p-4">
+      <main className="p-4 pb-28">
         <RecipeForm recipe={recipe} />
       </main>
     </div>

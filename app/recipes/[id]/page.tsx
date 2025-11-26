@@ -179,8 +179,22 @@ export default function RecipeDetailPage({ params }: PageProps) {
         )}
 
         <div className="p-4 space-y-6">
-          <div>
+          <div className="flex items-center justify-between mb-2">
             <h1 className="text-2xl font-bold">{recipe.title}</h1>
+            <div className="flex gap-2">
+              <Link href={`/recipes/${id}/edit`}>
+                <Button variant="outline" size="icon" className="h-8 w-8">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  <span className="sr-only">Bearbeiten</span>
+                </Button>
+              </Link>
+              <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => setDeleteDialogOpen(true)}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                <span className="sr-only">Löschen</span>
+              </Button>
+            </div>
+          </div>
+          <div> {/* This is the new wrapper div */}
             <div className="flex items-center gap-3 mt-1">
               <span className="text-muted-foreground">Portionen:</span>
               <div className="flex items-center gap-2">
@@ -239,6 +253,7 @@ export default function RecipeDetailPage({ params }: PageProps) {
               </a>
             )}
           </div>
+
 
           <section>
             <h2 className="text-xl font-bold mb-3">Zutaten</h2>

@@ -146,7 +146,7 @@ export function RecipeForm({ recipe, onSubmit }: RecipeFormProps) {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 sticky bottom-16 md:bottom-0 z-51 bg-background py-4">
         <Button type="submit" disabled={loading} className="flex-1">
           {loading ? 'Speichern...' : recipe?.id ? 'Aktualisieren' : 'Rezept erstellen'}
         </Button>
