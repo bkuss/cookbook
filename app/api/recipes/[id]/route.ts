@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getRecipeById, updateRecipe, deleteRecipe } from '@/lib/db/queries/recipes';
+import { requireAuth } from '@/lib/auth/session';
 import type { RecipeInput } from '@/lib/types/recipe';
 
 interface RouteParams {
@@ -7,6 +8,9 @@ interface RouteParams {
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const recipe = await getRecipeById(id);
@@ -29,6 +33,9 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 export async function PUT(request: Request, { params }: RouteParams) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const body: RecipeInput = await request.json();
@@ -82,6 +89,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const deleted = await deleteRecipe(id);

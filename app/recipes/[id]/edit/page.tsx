@@ -2,7 +2,6 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Header } from '@/components/layout/header';
 import { RecipeForm } from '@/components/recipes/recipe-form';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Recipe } from '@/lib/types/recipe';
@@ -38,9 +37,7 @@ export default function EditRecipePage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header title="Laden..." showBack backHref={`/recipes/${id}`} />
-        <div className="p-4 space-y-4">
+      <div className="min-h-screen bg-background p-4 space-y-4">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="aspect-video w-full" />
           <Skeleton className="h-10 w-24" />
@@ -50,7 +47,6 @@ export default function EditRecipePage({ params }: PageProps) {
             ))}
           </div>
           <Skeleton className="h-32 w-full" />
-        </div>
       </div>
     );
   }
@@ -61,7 +57,6 @@ export default function EditRecipePage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header title="Rezept bearbeiten" showBack backHref={`/recipes/${id}`} />
       <main className="p-4">
         <RecipeForm recipe={recipe} />
       </main>

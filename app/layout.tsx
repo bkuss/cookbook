@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de">
+    <html lang="de" data-scroll-behavior="smooth">
       <body className={`${geist.variable} font-sans antialiased`}>
         <Shell>{children}</Shell>
         <Toaster position="top-center" />

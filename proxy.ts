@@ -12,7 +12,7 @@ export async function proxy(request: NextRequest) {
 
   // Allow public paths
   if (publicPaths.some((path) => pathname.startsWith(path))) {
-    return NextResponse.next({ request });
+    return NextResponse.next();
   }
 
   // Check for session cookie
@@ -28,7 +28,7 @@ export async function proxy(request: NextRequest) {
 
   try {
     await jwtVerify(token, secret);
-    return NextResponse.next({ request });
+    return NextResponse.next();
   } catch {
     // Invalid token - redirect to login
     if (pathname.startsWith('/api/')) {
@@ -41,5 +41,14 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - api routes (handled separately to avoid body consumption issues)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
+  ],
 };

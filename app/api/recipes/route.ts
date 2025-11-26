@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getAllRecipes, createRecipe } from '@/lib/db/queries/recipes';
+import { requireAuth } from '@/lib/auth/session';
 import type { RecipeInput } from '@/lib/types/recipe';
 
 export async function GET(request: Request) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || undefined;
@@ -19,6 +23,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const body: RecipeInput = await request.json();
 

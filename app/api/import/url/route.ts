@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { extractRecipeFromText } from '@/lib/replicate/client';
 import { fetchRecipeContent } from '@/lib/utils/url-fetch';
+import { requireAuth } from '@/lib/auth/session';
 
 export async function POST(request: Request) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { url } = await request.json();
 

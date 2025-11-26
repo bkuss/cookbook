@@ -2,7 +2,6 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -191,17 +190,7 @@ export default function ImportPage() {
   // Show recipe form if we have extracted data
   if (extractedRecipe) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header
-          title="Rezept überprüfen"
-          showBack
-          actions={
-            <Button variant="ghost" size="sm" onClick={resetImport}>
-              Neu importieren
-            </Button>
-          }
-        />
-        <main className="p-4">
+      <div className="min-h-screen bg-background p-4">
           <p className="text-sm text-muted-foreground mb-4">
             Überprüfe und bearbeite das erkannte Rezept, bevor du es speicherst.
           </p>
@@ -221,21 +210,19 @@ export default function ImportPage() {
             }}
             onSubmit={handleRecipeCreated}
           />
-        </main>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Header title="Rezept importieren" showBack />
-
       <main className="p-4">
         <Tabs defaultValue="image" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="image">Aus Bild</TabsTrigger>
             <TabsTrigger value="url">Von URL</TabsTrigger>
             <TabsTrigger value="text">Aus Text</TabsTrigger>
+            <TabsTrigger value="manual">Manuell</TabsTrigger>
           </TabsList>
 
           <TabsContent value="image" className="mt-6 space-y-4">
@@ -339,6 +326,10 @@ export default function ImportPage() {
                 )}
               </Button>
             </form>
+          </TabsContent>
+
+          <TabsContent value="manual" className="mt-6 space-y-4">
+            <RecipeForm onSubmit={handleRecipeCreated} />
           </TabsContent>
         </Tabs>
       </main>

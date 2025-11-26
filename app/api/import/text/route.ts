@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { extractRecipeFromText } from '@/lib/replicate/client';
+import { requireAuth } from '@/lib/auth/session';
 
 export async function POST(request: Request) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { text } = await request.json();
 

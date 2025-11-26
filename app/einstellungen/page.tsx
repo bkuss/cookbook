@@ -1,6 +1,5 @@
 'use client';
 
-import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -118,8 +117,6 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header title="Einstellungen" />
-
       <main className="p-4 space-y-4">
         <Card>
           <CardHeader>

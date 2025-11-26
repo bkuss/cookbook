@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
+import { NextResponse } from 'next/server';
 
 const secretKey = process.env.SESSION_SECRET || 'default-secret-change-in-production';
 const secret = new TextEncoder().encode(secretKey);
@@ -42,4 +43,12 @@ export async function setSessionCookie(token: string): Promise<void> {
 export async function clearSessionCookie(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete('session');
+}
+
+export async function requireAuth(): Promise<NextResponse | null> {
+  const isAuthenticated = await verifySession();
+  if (!isAuthenticated) {
+    return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 });
+  }
+  return null;
 }

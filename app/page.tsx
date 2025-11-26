@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Header } from '@/components/layout/header';
 import { SearchBar } from '@/components/layout/search-bar';
 import { RecipeCard } from '@/components/recipes/recipe-card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -48,30 +47,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header
-        title="Familienrezepte"
-        actions={
-          <Link href="/recipes/new">
-            <Button size="icon" variant="ghost">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M5 12h14" />
-                <path d="M12 5v14" />
-              </svg>
-            </Button>
-          </Link>
-        }
-      />
-
       <main className="p-4 space-y-4">
         <SearchBar
           value={searchQuery}

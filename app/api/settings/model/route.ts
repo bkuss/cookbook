@@ -1,7 +1,11 @@
 import { getSetting, setSetting } from '@/lib/db/queries/settings';
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth/session';
 
 export async function GET() {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const model = await getSetting('recipe_model');
     return NextResponse.json({ model: model || 'openai/gpt-5' });
@@ -12,6 +16,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { model } = await req.json();
 

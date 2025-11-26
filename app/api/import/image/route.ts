@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { extractRecipeFromImage } from '@/lib/replicate/client';
+import { requireAuth } from '@/lib/auth/session';
 
 export async function POST(request: Request) {
+  const authError = await requireAuth();
+  if (authError) return authError;
+
   try {
     const { image } = await request.json();
 

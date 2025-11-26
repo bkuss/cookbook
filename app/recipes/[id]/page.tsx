@@ -3,7 +3,6 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -149,9 +148,7 @@ export default function RecipeDetailPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header title="Laden..." showBack />
-        <div className="p-4 space-y-4">
+      <div className="min-h-screen bg-background p-4 space-y-4">
           <Skeleton className="aspect-video w-full" />
           <Skeleton className="h-8 w-3/4" />
           <Skeleton className="h-4 w-1/4" />
@@ -160,7 +157,6 @@ export default function RecipeDetailPage({ params }: PageProps) {
               <Skeleton key={i} className="h-6 w-full" />
             ))}
           </div>
-        </div>
       </div>
     );
   }
@@ -171,55 +167,6 @@ export default function RecipeDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header
-        title={recipe.title}
-        showBack
-        actions={
-          <div className="flex gap-1">
-            <Link href={`/recipes/${id}/edit`}>
-              <Button size="icon" variant="ghost">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                  <path d="m15 5 4 4" />
-                </svg>
-              </Button>
-            </Link>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-destructive"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 6h18" />
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-              </svg>
-            </Button>
-          </div>
-        }
-      />
-
       <main>
         {recipe.imageData && (
           <div className="aspect-video w-full">

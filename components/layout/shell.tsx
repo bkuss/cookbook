@@ -16,7 +16,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     <>
       <Sidebar />
       <div className="md:pl-64 min-h-screen transition-all duration-300 ease-in-out">
-        <div className="pb-20 md:pb-0 h-full">
+        <div className="max-w-screen-xl mx-auto pb-20 md:pb-0 h-full">
           {children}
         </div>
       </div>
