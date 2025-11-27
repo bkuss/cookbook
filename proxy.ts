@@ -2,8 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const secretKey = process.env.SESSION_SECRET || 'default-secret-change-in-production';
-const secret = new TextEncoder().encode(secretKey);
+function getSecret() {
+  const secretKey = process.env.SESSION_SECRET;
+  if (!secretKey) {
+    throw new Error('SESSION_SECRET environment variable is required');
+  }
+  return new TextEncoder().encode(secretKey);
+}
 
 const publicPaths = ['/login', '/api/auth/login', '/api/auth/setup', '/api/auth/status'];
 
@@ -27,7 +32,7 @@ export async function proxy(request: NextRequest) {
   }
 
   try {
-    await jwtVerify(token, secret);
+    await jwtVerify(token, getSecret());
     return NextResponse.next();
   } catch {
     // Invalid token - redirect to login

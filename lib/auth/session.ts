@@ -2,15 +2,20 @@ import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 import { NextResponse } from 'next/server';
 
-const secretKey = process.env.SESSION_SECRET || 'default-secret-change-in-production';
-const secret = new TextEncoder().encode(secretKey);
+function getSecret() {
+  const secretKey = process.env.SESSION_SECRET;
+  if (!secretKey) {
+    throw new Error('SESSION_SECRET environment variable is required');
+  }
+  return new TextEncoder().encode(secretKey);
+}
 
 export async function createSession(): Promise<string> {
   const token = await new SignJWT({ authenticated: true })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(secret);
+    .sign(getSecret());
 
   return token;
 }
@@ -22,7 +27,7 @@ export async function verifySession(): Promise<boolean> {
   if (!token) return false;
 
   try {
-    await jwtVerify(token, secret);
+    await jwtVerify(token, getSecret());
     return true;
   } catch {
     return false;
