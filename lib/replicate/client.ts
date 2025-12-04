@@ -124,12 +124,17 @@ export async function generateRecipeImage(title: string, ingredients: string[]):
 
   const imageModel = await getSetting('image_model') || 'google/nano-banana';
 
-  const output = await replicate.run(imageModel as `${string}/${string}`, {
-    input: {
-      prompt,
-      aspect_ratio: '16:9',
-    },
-  });
+  const input: Record<string, unknown> = {
+    prompt,
+    aspect_ratio: '16:9',
+  };
+
+  if (imageModel === 'google/nano-banana-pro') {
+    input.resolution = '1K';
+    input.output_format = 'jpg';
+  }
+
+  const output = await replicate.run(imageModel as `${string}/${string}`, { input });
 
   // Output is a FileOutput object - can be used directly as a Buffer
   if (output instanceof Buffer) {
