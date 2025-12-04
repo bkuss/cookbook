@@ -38,6 +38,8 @@ npm run lint     # Run ESLint
 
 ### Environment Variables
 ```
-REPLICATE_API_TOKEN=
 DATABASE_URI=
+SESSION_SECRET=
+REPLICATE_API_TOKEN=
+COOKIE_SECURE=          # Optional: set to 'false' for HTTP deployments
 ```
