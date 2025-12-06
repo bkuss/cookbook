@@ -81,17 +81,23 @@ export async function extractRecipeFromImage(imageBase64: string): Promise<Recip
     prompt: IMAGE_RECIPE_PROMPT,
   };
 
-  if (model === 'anthropic/claude-4.5-sonnet') {
+  if (model === 'openai/gpt-5-mini') {
+    // gpt-5 mini uses image_input array
+    input.image_input = [imageUrl];
+    input.reasoning_effort = 'minimal';
+  } else if (model === 'openai/gpt-5') {
+    // gpt-5 uses image_input array
+    input.image_input = [imageUrl];
+    input.reasoning_effort = 'minimal';
+  } else if (model === 'anthropic/claude-4.5-sonnet') {
     // Claude uses 'image' (string) and max_tokens
     input.image = imageUrl;
     input.max_tokens = 2048;
-  } else if (model.startsWith('google/gemini')) {
+  } else if (model === 'google/gemini-3-pro') {
     // Gemini expects 'images' (array)
     input.images = [imageUrl];
-  } else {
-    // Default (gpt-5) uses image_input array
-    input.image_input = [imageUrl];
-    input.reasoning_effort = 'minimal';
+  } else if (model === 'google/gemini-2.5-flash') {
+    input.images = [imageUrl];
   }
 
   const output = await replicate.run(model as `${string}/${string}`, { input });
@@ -109,9 +115,14 @@ export async function extractRecipeFromText(content: string): Promise<RecipeInpu
     prompt: `${URL_RECIPE_PROMPT}\n\n${truncatedContent}`,
   };
 
-  if (model === 'anthropic/claude-4.5-sonnet') {
+  if (model === 'openai/gpt-5-mini') {
+    input.reasoning_effort = 'minimal';
+  } else if (model === 'openai/gpt-5') {
+    input.reasoning_effort = 'minimal';
+  } else if (model === 'anthropic/claude-4.5-sonnet') {
     input.max_tokens = 2048;
   }
+  // google/gemini-3-pro and google/gemini-2.5-flash use defaults
 
   const output = await replicate.run(model as `${string}/${string}`, { input });
 
