@@ -71,14 +71,14 @@ import { getSetting } from '../db/queries/settings';
 
 // ... existing code ...
 
-export async function extractRecipeFromImage(imageBase64: string): Promise<RecipeInput> {
+export async function extractRecipeFromImage(imageBase64: string, strict: boolean = false): Promise<RecipeInput> {
   const imageUrl = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
 
   const model = await getSetting('recipe_model') || 'openai/gpt-5-mini';
 
   // Define input based on model
   const input: Record<string, unknown> = {
-    prompt: IMAGE_RECIPE_PROMPT,
+    prompt: IMAGE_RECIPE_PROMPT(strict),
   };
 
   if (model === 'openai/gpt-5-mini') {
@@ -105,14 +105,14 @@ export async function extractRecipeFromImage(imageBase64: string): Promise<Recip
   return parseRecipeResponse(output);
 }
 
-export async function extractRecipeFromText(content: string): Promise<RecipeInput> {
+export async function extractRecipeFromText(content: string, strict: boolean = false): Promise<RecipeInput> {
   // Truncate content if too long
   const truncatedContent = content.length > 10000 ? content.substring(0, 10000) : content;
 
   const model = await getSetting('recipe_model') || 'openai/gpt-5-mini';
 
   const input: Record<string, unknown> = {
-    prompt: `${URL_RECIPE_PROMPT}\n\n${truncatedContent}`,
+    prompt: `${URL_RECIPE_PROMPT(strict)}\n\n${truncatedContent}`,
   };
 
   if (model === 'openai/gpt-5-mini') {
