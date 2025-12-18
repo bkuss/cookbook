@@ -88,7 +88,7 @@ import { getSetting } from '../db/queries/settings';
 export async function extractRecipeFromImage(imageBase64: string, strict: boolean = false): Promise<RecipeInput> {
   const imageUrl = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
 
-  const model = await getSetting('recipe_model') || 'openai/gpt-5-mini';
+  const model = await getSetting('recipe_model') || 'openai/gpt-5.2';
 
   // Define input based on model
   const input: Record<string, unknown> = {
@@ -98,11 +98,11 @@ export async function extractRecipeFromImage(imageBase64: string, strict: boolea
   if (model === 'openai/gpt-5-mini') {
     // gpt-5 mini uses image_input array
     input.image_input = [imageUrl];
-    input.reasoning_effort = 'minimal';
-  } else if (model === 'openai/gpt-5') {
-    // gpt-5 uses image_input array
+    input.reasoning_effort = 'low';
+  } else if (model === 'openai/gpt-5.2') {
+    // gpt-5.2 uses image_input array
     input.image_input = [imageUrl];
-    input.reasoning_effort = 'minimal';
+    input.reasoning_effort = 'low';
   } else if (model === 'anthropic/claude-4.5-sonnet') {
     // Claude uses 'image' (string) and max_tokens
     input.image = imageUrl;
@@ -123,16 +123,16 @@ export async function extractRecipeFromText(content: string, strict: boolean = f
   // Truncate content if too long
   const truncatedContent = content.length > 10000 ? content.substring(0, 10000) : content;
 
-  const model = await getSetting('recipe_model') || 'openai/gpt-5-mini';
+  const model = await getSetting('recipe_model') || 'openai/gpt-5.2';
 
   const input: Record<string, unknown> = {
     prompt: `${URL_RECIPE_PROMPT(strict)}\n\n${truncatedContent}`,
   };
 
   if (model === 'openai/gpt-5-mini') {
-    input.reasoning_effort = 'minimal';
-  } else if (model === 'openai/gpt-5') {
-    input.reasoning_effort = 'minimal';
+    input.reasoning_effort = 'low';
+  } else if (model === 'openai/gpt-5.2') {
+    input.reasoning_effort = 'low';
   } else if (model === 'anthropic/claude-4.5-sonnet') {
     input.max_tokens = 2048;
   }

@@ -8,7 +8,7 @@ export async function GET() {
 
   try {
     const model = await getSetting('recipe_model');
-    return NextResponse.json({ model: model || 'openai/gpt-5' });
+    return NextResponse.json({ model: model || 'openai/gpt-5.2' });
   } catch (error) {
     console.error('Error fetching model setting:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     const validModels = [
       'openai/gpt-5-mini',
-      'openai/gpt-5',
+      'openai/gpt-5.2',
       'google/gemini-3-pro',
       'google/gemini-2.5-flash',
       'anthropic/claude-4.5-sonnet'
