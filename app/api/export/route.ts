@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth/session';
 
 interface ExportIngredient {
   name: string;
-  amount: number | null;
+  amount: string | null;
   unit: string | null;
 }
 

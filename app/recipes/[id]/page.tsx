@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Copy, Share2 } from 'lucide-react';
 import type { Recipe } from '@/lib/types/recipe';
+import { scaleAmount } from '@/lib/utils/amount';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -116,21 +117,17 @@ export default function RecipeDetailPage({ params }: PageProps) {
     toast.success('In Zwischenablage kopiert');
   }
 
-  // Calculate the multiplier for servings adjustment
-  const servingsMultiplier = recipe && displayServings
-    ? displayServings / recipe.servings
-    : 1;
-
-  function formatAmount(amount: number | null, unit: string | null): string {
-    if (amount === null) {
+  function formatAmount(amount: string | null, unit: string | null): string {
+    if (amount === null || amount === '') {
       return unit || '';
     }
-    // Apply servings multiplier
-    const adjusted = amount * servingsMultiplier;
-    const formatted = adjusted % 1 === 0
-      ? adjusted.toString()
-      : adjusted.toFixed(2).replace(/\.?0+$/, '');
-    return unit ? `${formatted} ${unit}` : formatted;
+    // Apply servings scaling if needed
+    const newServ = displayServings ?? recipe?.servings ?? 1;
+    const oldServ = recipe?.servings ?? 1;
+    const scaled = newServ !== oldServ
+      ? scaleAmount(amount, newServ, oldServ)
+      : amount;
+    return unit ? `${scaled} ${unit}` : scaled;
   }
 
   function adjustServings(delta: number) {
@@ -147,7 +144,7 @@ export default function RecipeDetailPage({ params }: PageProps) {
     try {
       const adjustedIngredients = recipe.ingredients.map(ing => ({
         name: ing.name,
-        amount: ing.amount !== null ? ing.amount * servingsMultiplier : null,
+        amount: ing.amount !== null ? scaleAmount(ing.amount, displayServings, recipe.servings) : null,
         unit: ing.unit,
       }));
 

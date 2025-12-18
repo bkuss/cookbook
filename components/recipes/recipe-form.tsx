@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { IngredientInput } from './ingredient-input';
 import { ImageUpload } from './image-upload';
 import type { Recipe, RecipeInput, Ingredient } from '@/lib/types/recipe';
+import { isValidAmount } from '@/lib/utils/amount';
 
 interface RecipeFormProps {
   recipe?: Recipe;
@@ -40,6 +41,16 @@ export function RecipeForm({ recipe, onSubmit }: RecipeFormProps) {
 
     if (validIngredients.length === 0) {
       setError('Mindestens eine Zutat ist erforderlich');
+      setLoading(false);
+      return;
+    }
+
+    // Validate ingredient amounts
+    const invalidAmount = validIngredients.find(
+      (ing) => ing.amount !== null && ing.amount !== '' && !isValidAmount(ing.amount)
+    );
+    if (invalidAmount) {
+      setError(`Ungültige Mengenangabe: "${invalidAmount.amount}". Erlaubt sind Zahlen (z.B. 200), Dezimalzahlen (z.B. 2.5) oder Brüche (z.B. 1/2, 1 1/2).`);
       setLoading(false);
       return;
     }

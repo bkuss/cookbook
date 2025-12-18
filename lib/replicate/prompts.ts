@@ -6,7 +6,9 @@ Gib NUR gültiges JSON zurück, ohne zusätzlichen Text. Das JSON muss folgendes
   "title": "Name des Rezepts",
   "servings": 4,
   "ingredients": [
-    {"name": "Zutatname", "amount": 200, "unit": "g"},
+    {"name": "Zutatname", "amount": "200", "unit": "g"},
+    {"name": "Butter", "amount": "1/2", "unit": "Tasse"},
+    {"name": "Milch", "amount": "1 1/2", "unit": "Tassen"},
     {"name": "Salz", "amount": null, "unit": "nach Geschmack"}
   ],
   "instructions": "# Vorbereitung\\n1. Zwiebeln würfeln und anbraten\\n2. Knoblauch hinzufügen\\n\\n# Zubereitung\\n1. Mit Brühe ablöschen\\n2. 20 Minuten köcheln lassen"
@@ -15,6 +17,7 @@ Gib NUR gültiges JSON zurück, ohne zusätzlichen Text. Das JSON muss folgendes
 Regeln:
 - Extrahiere genaue Mengen wenn möglich
 - Verwende metrische Einheiten (g, ml, EL, TL, Stück)
+- Gib Mengen als Strings zurück (z.B. "200"). Verwende Brüche (z.B. "1/2", "1 1/2") nur wenn das Originalrezept diese explizit verwendet
 - Für "nach Geschmack" oder unbestimmte Mengen: amount = null
 - Halte Zutatennamen einfach und klar
 - Gib die Anleitung als Markdown formatierten Text zurück. Verwende nummerierte Listen für die Schritte. Falls wirklich sinnvoll, verwende Überschriften (#) zur Strukturierung. Aber standardmäßig nur eine nummerierte Liste.

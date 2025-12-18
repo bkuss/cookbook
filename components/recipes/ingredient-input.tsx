@@ -3,6 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Ingredient } from '@/lib/types/recipe';
+import { isValidAmount } from '@/lib/utils/amount';
+import { cn } from '@/lib/utils';
 
 interface IngredientInputProps {
   ingredients: Omit<Ingredient, 'id' | 'sortOrder'>[];
@@ -18,10 +20,14 @@ export function IngredientInput({ ingredients, onChange }: IngredientInputProps)
     onChange(ingredients.filter((_, i) => i !== index));
   }
 
-  function updateIngredient(index: number, field: keyof Omit<Ingredient, 'id' | 'sortOrder'>, value: string | number | null) {
+  function updateIngredient(index: number, field: keyof Omit<Ingredient, 'id' | 'sortOrder'>, value: string | null) {
     const updated = [...ingredients];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
+  }
+
+  function isAmountInvalid(amount: string | null): boolean {
+    return amount !== null && amount !== '' && !isValidAmount(amount);
   }
 
   return (
@@ -44,16 +50,15 @@ export function IngredientInput({ ingredients, onChange }: IngredientInputProps)
           <div key={index} className="flex gap-2 items-start">
             <Input
               placeholder="Menge"
-              type="number"
-              step="any"
-              className="w-20"
+              type="text"
+              inputMode="decimal"
+              className={cn(
+                'w-20',
+                isAmountInvalid(ingredient.amount) && 'border-destructive focus-visible:ring-destructive'
+              )}
               value={ingredient.amount ?? ''}
               onChange={(e) =>
-                updateIngredient(
-                  index,
-                  'amount',
-                  e.target.value ? parseFloat(e.target.value) : null
-                )
+                updateIngredient(index, 'amount', e.target.value || null)
               }
             />
             <Input
