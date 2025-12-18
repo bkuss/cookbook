@@ -13,13 +13,21 @@ import { cn } from '@/lib/utils';
 type IngredientBase = Omit<Ingredient, 'id' | 'sortOrder'>;
 type IngredientWithId = IngredientBase & { _id: string };
 
+// crypto.randomUUID() requires secure context (HTTPS). Fallback for HTTP deployments.
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 interface IngredientInputProps {
   ingredients: IngredientBase[];
   onChange: (ingredients: IngredientBase[]) => void;
 }
 
 function addIds(ingredients: IngredientBase[]): IngredientWithId[] {
-  return ingredients.map((ing) => ({ ...ing, _id: crypto.randomUUID() }));
+  return ingredients.map((ing) => ({ ...ing, _id: generateId() }));
 }
 
 function stripIds(ingredients: IngredientWithId[]): IngredientBase[] {
@@ -121,7 +129,7 @@ export function IngredientInput({ ingredients, onChange }: IngredientInputProps)
   }
 
   function addIngredient() {
-    const newItems = [...items, { name: '', amount: null, unit: null, _id: crypto.randomUUID() }];
+    const newItems = [...items, { name: '', amount: null, unit: null, _id: generateId() }];
     setItems(newItems);
     emitChange(newItems);
   }
