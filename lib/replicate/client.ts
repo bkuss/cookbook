@@ -1,6 +1,7 @@
 import type { Ingredient, RecipeInput } from '@/lib/types/recipe';
 import Replicate from 'replicate';
 import { IMAGE_RECIPE_PROMPT, URL_RECIPE_PROMPT } from './prompts';
+import { isValidAmount } from '@/lib/utils/amount';
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
@@ -9,7 +10,7 @@ const replicate = new Replicate({
 interface ExtractedRecipe {
   title: string;
   servings: number;
-  ingredients: { name: string; amount: number | null; unit: string | null }[];
+  ingredients: { name: string; amount: string | number | null; unit: string | null }[];
   instructions: string;
 }
 
@@ -53,11 +54,24 @@ function parseRecipeResponse(output: unknown): RecipeInput {
   // Transform to RecipeInput format
   const ingredients: Omit<Ingredient, 'id' | 'sortOrder'>[] = parsed.ingredients
     .filter((ing) => ing.name && typeof ing.name === 'string')
-    .map((ing) => ({
-      name: ing.name.trim(),
-      amount: typeof ing.amount === 'number' ? ing.amount : null,
-      unit: ing.unit && typeof ing.unit === 'string' ? ing.unit.trim() : null,
-    }));
+    .map((ing) => {
+      let amount: string | null = null;
+
+      if (typeof ing.amount === 'number') {
+        // Convert number to string (for backward compatibility with LLMs returning numbers)
+        amount = Number.isInteger(ing.amount)
+          ? ing.amount.toString()
+          : ing.amount.toString().replace(/\.?0+$/, '');
+      } else if (typeof ing.amount === 'string' && isValidAmount(ing.amount)) {
+        amount = ing.amount.trim();
+      }
+
+      return {
+        name: ing.name.trim(),
+        amount,
+        unit: ing.unit && typeof ing.unit === 'string' ? ing.unit.trim() : null,
+      };
+    });
 
   return {
     title: parsed.title.trim(),

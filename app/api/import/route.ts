@@ -1,10 +1,11 @@
 import { createRecipe, recipeExistsByTitle } from '@/lib/db/queries/recipes';
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth/session';
+import { isValidAmount } from '@/lib/utils/amount';
 
 interface ImportIngredient {
   name: string;
-  amount: number | null;
+  amount: string | number | null;
   unit: string | null;
 }
 
@@ -48,6 +49,11 @@ function validateImportData(data: unknown): data is ImportData {
       if (!ing || typeof ing !== 'object') return false;
       const i = ing as Record<string, unknown>;
       if (typeof i.name !== 'string' || !i.name.trim()) return false;
+      // Validate amount: allow null, numbers, or valid amount strings
+      if (i.amount !== null && i.amount !== undefined) {
+        if (typeof i.amount === 'string' && !isValidAmount(i.amount)) return false;
+        if (typeof i.amount !== 'string' && typeof i.amount !== 'number') return false;
+      }
     }
   }
 
@@ -89,11 +95,22 @@ export async function POST(req: Request) {
           servings: recipe.servings,
           imageData: recipe.imageData || null,
           sourceUrl: recipe.sourceUrl || null,
-          ingredients: recipe.ingredients.map((ing) => ({
-            name: ing.name,
-            amount: ing.amount,
-            unit: ing.unit,
-          })),
+          ingredients: recipe.ingredients.map((ing) => {
+            // Convert number to string for backward compatibility
+            let amount: string | null = null;
+            if (typeof ing.amount === 'number') {
+              amount = Number.isInteger(ing.amount)
+                ? ing.amount.toString()
+                : ing.amount.toString().replace(/\.?0+$/, '');
+            } else if (typeof ing.amount === 'string') {
+              amount = ing.amount;
+            }
+            return {
+              name: ing.name,
+              amount,
+              unit: ing.unit,
+            };
+          }),
         });
 
         result.imported++;

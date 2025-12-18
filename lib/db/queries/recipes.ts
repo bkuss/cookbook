@@ -69,7 +69,7 @@ export async function getRecipeById(id: string): Promise<Recipe | null> {
   const ingredients: Ingredient[] = ingredientsResult.rows.map((ing) => ({
     id: ing.id,
     name: ing.name,
-    amount: ing.amount ? parseFloat(ing.amount) : null,
+    amount: ing.amount,
     unit: ing.unit,
     sortOrder: ing.sort_order,
   }));
@@ -115,7 +115,7 @@ export async function createRecipe(input: RecipeInput): Promise<Recipe> {
       ingredients.push({
         id: row.id,
         name: row.name,
-        amount: row.amount ? parseFloat(row.amount) : null,
+        amount: row.amount,
         unit: row.unit,
         sortOrder: row.sort_order,
       });
@@ -179,7 +179,7 @@ export async function updateRecipe(id: string, input: RecipeInput): Promise<Reci
       ingredients.push({
         id: row.id,
         name: row.name,
-        amount: row.amount ? parseFloat(row.amount) : null,
+        amount: row.amount,
         unit: row.unit,
         sortOrder: row.sort_order,
       });
@@ -229,7 +229,7 @@ export async function getAllRecipesWithIngredients(): Promise<Recipe[]> {
     const ingredients: Ingredient[] = ingredientsResult.rows.map((ing) => ({
       id: ing.id,
       name: ing.name,
-      amount: ing.amount ? parseFloat(ing.amount) : null,
+      amount: ing.amount,
       unit: ing.unit,
       sortOrder: ing.sort_order,
     }));
