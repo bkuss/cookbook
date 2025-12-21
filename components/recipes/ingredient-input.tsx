@@ -1,17 +1,20 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { Reorder, useDragControls } from 'framer-motion';
-import { GripVertical } from 'lucide-react';
-import isEqual from 'fast-deep-equal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Ingredient } from '@/lib/types/recipe';
-import { isValidAmount } from '@/lib/utils/amount';
 import { cn } from '@/lib/utils';
+import { isValidAmount } from '@/lib/utils/amount';
+import isEqual from 'fast-deep-equal';
+import { Reorder, useDragControls } from 'framer-motion';
+import { GripVertical } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 type IngredientBase = Omit<Ingredient, 'id' | 'sortOrder'>;
 type IngredientWithId = IngredientBase & { _id: string };
+type IngredientField = 'name' | 'amount' | 'unit';
+
+const highlightClass = 'bg-yellow-50 dark:bg-yellow-900/20 ring-1 ring-yellow-200 dark:ring-yellow-800';
 
 // crypto.randomUUID() requires secure context (HTTPS). Fallback for HTTP deployments.
 function generateId(): string {
@@ -24,6 +27,8 @@ function generateId(): string {
 interface IngredientInputProps {
   ingredients: IngredientBase[];
   onChange: (ingredients: IngredientBase[]) => void;
+  highlightedFields?: Map<number, Set<IngredientField>>;
+  onHighlightClear?: (index: number, field: IngredientField) => void;
 }
 
 function addIds(ingredients: IngredientBase[]): IngredientWithId[] {
@@ -36,13 +41,30 @@ function stripIds(ingredients: IngredientWithId[]): IngredientBase[] {
 
 interface IngredientRowProps {
   ingredient: IngredientWithId;
+  index: number;
   onUpdate: (id: string, field: keyof IngredientBase, value: string | null) => void;
   onRemove: (id: string) => void;
   isAmountInvalid: (amount: string | null) => boolean;
+  highlightedFields?: Set<IngredientField>;
+  onHighlightClear?: (field: IngredientField) => void;
 }
 
-function IngredientRow({ ingredient, onUpdate, onRemove, isAmountInvalid }: IngredientRowProps) {
+function IngredientRow({
+  ingredient,
+  onUpdate,
+  onRemove,
+  isAmountInvalid,
+  highlightedFields,
+  onHighlightClear,
+}: IngredientRowProps) {
   const controls = useDragControls();
+
+  function handleFieldChange(field: IngredientField, value: string | null) {
+    onUpdate(ingredient._id, field, value);
+    if (highlightedFields?.has(field)) {
+      onHighlightClear?.(field);
+    }
+  }
 
   return (
     <Reorder.Item
@@ -63,22 +85,23 @@ function IngredientRow({ ingredient, onUpdate, onRemove, isAmountInvalid }: Ingr
         inputMode="decimal"
         className={cn(
           'w-[72px] sm:w-20',
-          isAmountInvalid(ingredient.amount) && 'border-destructive focus-visible:ring-destructive'
+          isAmountInvalid(ingredient.amount) && 'border-destructive focus-visible:ring-destructive',
+          highlightedFields?.has('amount') && highlightClass
         )}
         value={ingredient.amount ?? ''}
-        onChange={(e) => onUpdate(ingredient._id, 'amount', e.target.value || null)}
+        onChange={(e) => handleFieldChange('amount', e.target.value || null)}
       />
       <Input
         placeholder="Einheit"
-        className="w-[72px] sm:w-20"
+        className={cn('w-[72px] sm:w-20', highlightedFields?.has('unit') && highlightClass)}
         value={ingredient.unit ?? ''}
-        onChange={(e) => onUpdate(ingredient._id, 'unit', e.target.value || null)}
+        onChange={(e) => handleFieldChange('unit', e.target.value || null)}
       />
       <Input
         placeholder="Zutat (z.B. Mehl)"
-        className="flex-1"
+        className={cn('flex-1', highlightedFields?.has('name') && highlightClass)}
         value={ingredient.name}
-        onChange={(e) => onUpdate(ingredient._id, 'name', e.target.value)}
+        onChange={(e) => handleFieldChange('name', e.target.value)}
         required
       />
       <Button
@@ -108,7 +131,12 @@ function IngredientRow({ ingredient, onUpdate, onRemove, isAmountInvalid }: Ingr
   );
 }
 
-export function IngredientInput({ ingredients, onChange }: IngredientInputProps) {
+export function IngredientInput({
+  ingredients,
+  onChange,
+  highlightedFields,
+  onHighlightClear,
+}: IngredientInputProps) {
   const [items, setItems] = useState<IngredientWithId[]>(() => addIds(ingredients));
   const lastEmittedRef = useRef<IngredientBase[]>(ingredients);
 
@@ -173,13 +201,18 @@ export function IngredientInput({ ingredients, onChange }: IngredientInputProps)
       )}
 
       <Reorder.Group axis="y" values={items} onReorder={handleReorder} className="space-y-2">
-        {items.map((ingredient) => (
+        {items.map((ingredient, index) => (
           <IngredientRow
             key={ingredient._id}
             ingredient={ingredient}
+            index={index}
             onUpdate={updateIngredient}
             onRemove={removeIngredient}
             isAmountInvalid={isAmountInvalid}
+            highlightedFields={highlightedFields?.get(index)}
+            onHighlightClear={
+              onHighlightClear ? (field) => onHighlightClear(index, field) : undefined
+            }
           />
         ))}
       </Reorder.Group>

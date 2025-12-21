@@ -1,15 +1,28 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { IngredientInput } from './ingredient-input';
-import { ImageUpload } from './image-upload';
-import type { Recipe, RecipeInput, Ingredient } from '@/lib/types/recipe';
+import { Textarea } from '@/components/ui/textarea';
+import type { Ingredient, Recipe, RecipeInput } from '@/lib/types/recipe';
+import { cn } from '@/lib/utils';
 import { isValidAmount } from '@/lib/utils/amount';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { ImageUpload } from './image-upload';
+import { IngredientInput } from './ingredient-input';
+import { RefineDialog } from './refine-dialog';
+
+type IngredientField = 'name' | 'amount' | 'unit';
+
+interface ChangedFields {
+  title: boolean;
+  servings: boolean;
+  instructions: boolean;
+  ingredients: Map<number, Set<IngredientField>>;
+}
+
+const highlightClass = 'bg-yellow-50 dark:bg-yellow-900/20 ring-1 ring-yellow-200 dark:ring-yellow-800';
 
 interface RecipeFormProps {
   recipe?: Recipe;
@@ -31,6 +44,12 @@ export function RecipeForm({ recipe, onSubmit }: RecipeFormProps) {
       { name: '', amount: null, unit: null },
     ]
   );
+  const [changedFields, setChangedFields] = useState<ChangedFields>({
+    title: false,
+    servings: false,
+    instructions: false,
+    ingredients: new Map(),
+  });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -103,7 +122,13 @@ export function RecipeForm({ recipe, onSubmit }: RecipeFormProps) {
           id="title"
           placeholder="Name des Rezepts"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            if (changedFields.title) {
+              setChangedFields((prev) => ({ ...prev, title: false }));
+            }
+          }}
+          className={cn(changedFields.title && highlightClass)}
           required
         />
       </div>
@@ -122,12 +147,109 @@ export function RecipeForm({ recipe, onSubmit }: RecipeFormProps) {
           type="number"
           min="1"
           value={servings}
-          onChange={(e) => setServings(parseInt(e.target.value) || 1)}
-          className="w-24"
+          onChange={(e) => {
+            setServings(parseInt(e.target.value) || 1);
+            if (changedFields.servings) {
+              setChangedFields((prev) => ({ ...prev, servings: false }));
+            }
+          }}
+          className={cn('w-24', changedFields.servings && highlightClass)}
         />
       </div>
 
-      <IngredientInput ingredients={ingredients} onChange={setIngredients} />
+      <IngredientInput
+        ingredients={ingredients}
+        onChange={setIngredients}
+        highlightedFields={changedFields.ingredients}
+        onHighlightClear={(index, field) => {
+          setChangedFields((prev) => {
+            const newIngredients = new Map(prev.ingredients);
+            const fieldSet = newIngredients.get(index);
+            if (fieldSet) {
+              fieldSet.delete(field);
+              if (fieldSet.size === 0) {
+                newIngredients.delete(index);
+              }
+            }
+            return { ...prev, ingredients: newIngredients };
+          });
+        }}
+      />
+
+      <div className="flex justify-end">
+        <RefineDialog
+          recipe={{ title, servings, ingredients, instructions }}
+          onRefine={(refined) => {
+            const normalize = (s: string | null) => (s ?? '').trim().toLowerCase();
+
+            // Detect which fields changed
+            const changed: ChangedFields = {
+              title: refined.title.trim() !== title.trim(),
+              servings: refined.servings !== servings,
+              instructions: refined.instructions.trim() !== instructions.trim(),
+              ingredients: new Map(),
+            };
+
+            // Two-pass ingredient matching
+            const matchedOldIndices = new Set<number>();
+            const matches = new Map<number, (typeof ingredients)[number]>();
+
+            // Pass 1: Match by name
+            refined.ingredients.forEach((newIng, newIdx) => {
+              const newName = normalize(newIng.name);
+              const oldIdx = ingredients.findIndex(
+                (old, i) => !matchedOldIndices.has(i) && normalize(old.name) === newName
+              );
+              if (oldIdx !== -1) {
+                matchedOldIndices.add(oldIdx);
+                matches.set(newIdx, ingredients[oldIdx]);
+              }
+            });
+
+            // Pass 2: Match remaining by amount + unit
+            refined.ingredients.forEach((newIng, newIdx) => {
+              if (matches.has(newIdx)) return;
+              const oldIdx = ingredients.findIndex((old, i) => {
+                if (matchedOldIndices.has(i)) return false;
+                return (
+                  normalize(newIng.amount) === normalize(old.amount) &&
+                  normalize(newIng.unit) === normalize(old.unit)
+                );
+              });
+              if (oldIdx !== -1) {
+                matchedOldIndices.add(oldIdx);
+                matches.set(newIdx, ingredients[oldIdx]);
+              }
+            });
+
+            // Detect ingredient field changes
+            refined.ingredients.forEach((newIng, i) => {
+              const oldIng = matches.get(i);
+              const fieldChanges = new Set<IngredientField>();
+
+              if (!oldIng) {
+                fieldChanges.add('name');
+                fieldChanges.add('amount');
+                fieldChanges.add('unit');
+              } else {
+                if (normalize(newIng.name) !== normalize(oldIng.name)) fieldChanges.add('name');
+                if (normalize(newIng.amount) !== normalize(oldIng.amount)) fieldChanges.add('amount');
+                if (normalize(newIng.unit) !== normalize(oldIng.unit)) fieldChanges.add('unit');
+              }
+
+              if (fieldChanges.size > 0) {
+                changed.ingredients.set(i, fieldChanges);
+              }
+            });
+
+            setChangedFields(changed);
+            setTitle(refined.title);
+            setServings(refined.servings);
+            setIngredients(refined.ingredients);
+            setInstructions(refined.instructions);
+          }}
+        />
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="instructions">Zubereitung</Label>
@@ -138,7 +260,13 @@ export function RecipeForm({ recipe, onSubmit }: RecipeFormProps) {
           id="instructions"
           placeholder={"# Vorbereitung\nZwiebeln würfeln...\n\n# Zubereitung\nAlles anbraten..."}
           value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
+          onChange={(e) => {
+            setInstructions(e.target.value);
+            if (changedFields.instructions) {
+              setChangedFields((prev) => ({ ...prev, instructions: false }));
+            }
+          }}
+          className={cn(changedFields.instructions && highlightClass)}
           rows={8}
           required
         />
@@ -157,7 +285,7 @@ export function RecipeForm({ recipe, onSubmit }: RecipeFormProps) {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="flex gap-3 sticky bottom-16 md:bottom-0 z-51 bg-background py-4">
+      <div className="flex gap-3 sticky bottom-16 md:bottom-0 z-40 bg-background py-4">
         <Button type="submit" disabled={loading} className="flex-1">
           {loading ? 'Speichern...' : recipe?.id ? 'Aktualisieren' : 'Rezept erstellen'}
         </Button>

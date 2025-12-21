@@ -1,6 +1,6 @@
 import type { Ingredient, RecipeInput } from '@/lib/types/recipe';
 import Replicate from 'replicate';
-import { IMAGE_RECIPE_PROMPT, URL_RECIPE_PROMPT } from './prompts';
+import { IMAGE_RECIPE_PROMPT, URL_RECIPE_PROMPT, RECIPE_REFINEMENT_PROMPT } from './prompts';
 import { isValidAmount } from '@/lib/utils/amount';
 
 const replicate = new Replicate({
@@ -195,4 +195,46 @@ export async function generateRecipeImage(title: string, ingredients: string[]):
   }
 
   throw new Error('Unexpected output format from image generation model');
+}
+
+export interface RefineRecipeInput {
+  title: string;
+  servings: number;
+  ingredients: { name: string; amount: string | null; unit: string | null }[];
+  instructions: string;
+}
+
+export async function refineRecipe(recipe: RefineRecipeInput, userRequest: string): Promise<RecipeInput> {
+  const recipeJson = JSON.stringify({
+    title: recipe.title,
+    servings: recipe.servings,
+    ingredients: recipe.ingredients,
+    instructions: recipe.instructions,
+  }, null, 2);
+
+  const prompt = `${RECIPE_REFINEMENT_PROMPT}
+
+Aktuelles Rezept:
+${recipeJson}
+
+Benutzeranweisung:
+${userRequest}`;
+
+  const model = await getSetting('recipe_model') || 'openai/gpt-5.2';
+
+  const input: Record<string, unknown> = {
+    prompt,
+  };
+
+  if (model === 'openai/gpt-5-mini') {
+    input.reasoning_effort = 'low';
+  } else if (model === 'openai/gpt-5.2') {
+    input.reasoning_effort = 'low';
+  } else if (model === 'anthropic/claude-4.5-sonnet') {
+    input.max_tokens = 2048;
+  }
+
+  const output = await replicate.run(model as `${string}/${string}`, { input });
+
+  return parseRecipeResponse(output);
 }
